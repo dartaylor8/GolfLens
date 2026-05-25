@@ -1,97 +1,152 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# GolfScoreScanner
 
-# Getting Started
+GolfScoreScanner is a React Native app for scanning golf scorecards. The current build is Milestone 2: a camera-first flow with a scan action, fake detected score preview, score totals, rescan, and confirmation controls.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Current Milestone
 
-## Step 1: Start Metro
+Milestone 2 is complete:
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+- Requests camera permission.
+- Opens the rear camera with `react-native-vision-camera`.
+- Shows a full-screen live camera preview.
+- Displays a small white rectangular scanning box in the center.
+- Shows the prompt: `Hover over the scorecard`.
+- Adds a scan button and temporary scanning state.
+- Shows a fake/editable-style score review for the front nine.
+- Calculates par, score, and score relative to par from sample scorecard data.
+- Lets users rescan or confirm the reviewed score.
+- Does not include real image capture, OCR, database, login, saving, or backend yet.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Changed Files For Milestone 2
+
+- `App.tsx`: Main camera screen, permission flow, scan box, scan/review/confirm state, sample scorecard preview, score totals, and controls.
+- `android/app/src/main/AndroidManifest.xml`: Adds Android camera permission.
+- `ios/GolfScoreScanner/Info.plist`: Adds iOS camera usage text: `This app uses the camera to scan golf score numbers.`
+- `package.json` and `package-lock.json`: Adds `react-native-vision-camera`, `react-native-nitro-modules`, and `react-native-nitro-image`.
+- `ios/Podfile.lock`: Updated after installing iOS pods.
+- `__tests__/App.test.tsx`: Covers rendering and the scan-to-review flow.
+- `jest.config.js` and `jest.setup.js`: Adds a Jest mock for the native camera module and mock camera device.
+- `ios/GolfScoreScanner.xcodeproj/project.pbxproj`: Includes Xcode project updates and disables user script sandboxing for React Native iOS builds.
+- `ios/GolfScoreScanner.xcodeproj/xcshareddata/xcschemes/GolfScoreScanner.xcscheme`: Xcode scheme upgrade metadata.
+
+## Important iOS Notes
+
+The app uses the camera, so iOS requires this permission in `Info.plist`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>This app uses the camera to scan golf score numbers.</string>
+```
+
+Xcode's recommended setting `ENABLE_USER_SCRIPT_SANDBOXING = YES` caused the React Native iOS build to fail because the build script needed to write `ip.txt` into the app bundle. The project sets it to `NO` for Debug and Release.
+
+The direct iPad Mini build succeeded after that fix:
+
+```text
+** BUILD SUCCEEDED **
+```
+
+## Running The App
+
+Start Metro in one terminal:
 
 ```sh
-# Using npm
 npm start
-
-# OR using Yarn
-yarn start
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+Run on iOS simulator:
 
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+npm run ios
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+List available iOS devices:
 
 ```sh
-bundle install
+npx react-native run-ios --list-devices
 ```
 
-Then, and every time you update your native dependencies, run:
+Run on the connected iPad Mini used during setup:
 
 ```sh
+npx react-native run-ios --udid 00008130-0001145E3EE3803A --no-packager
+```
+
+Use `--no-packager` when Metro is already running.
+
+## iPad / Physical Device Setup
+
+Developer Mode is per-device. Enabling it on an iPhone does not enable it on the iPad.
+
+For a new iPad:
+
+1. Plug the iPad into the Mac.
+2. Unlock the iPad.
+3. Tap `Trust This Computer` if prompted.
+4. Open Xcode.
+5. Go to `Window -> Devices and Simulators`.
+6. Select the iPad and wait for Xcode to prepare it.
+7. On the iPad, enable `Settings -> Privacy & Security -> Developer Mode` if it appears.
+8. Restart the iPad if prompted.
+
+If Developer Mode does not appear, connect the iPad to Xcode first. It generally only appears on iOS/iPadOS 16 or later after Xcode has seen the device.
+
+## Checks
+
+Run these before wrapping up changes:
+
+```sh
+npm test -- --runInBand
+npm run lint
+npx tsc --noEmit
+```
+
+After native dependency changes, run:
+
+```sh
+cd ios
 bundle exec pod install
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## Git / Backup Status
 
-```sh
-# Using npm
-npm run ios
+The project is saved locally at:
 
-# OR using Yarn
-yarn ios
+```text
+/Users/dariusmtaylor/Documents/GolfScoreScanner
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+The GitHub remote is:
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```text
+https://github.com/dartaylor8/GolfScoreScanner.git
+```
 
-## Step 3: Modify your app
+GitHub Desktop has been used successfully to push changes when Terminal could not access GitHub credentials.
 
-Now that you have successfully run the app, let's make changes!
+## Next Milestones
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Suggested next path:
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+1. Add real still-image capture from the preview.
+2. Add OCR and fill the score grid with detected numbers.
+3. Highlight low-confidence OCR results so users know what to review.
+4. Let users edit any mistaken score before confirming.
+5. Persist confirmed scorecards locally.
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+OCR will not automatically recognize only golf scorecards. The app should make OCR behave like a scorecard scanner by combining:
 
-## Congratulations! :tada:
+- Cropping to the scan box.
+- Image preprocessing such as grayscale, contrast, and sharpening.
+- OCR for visible text and numbers.
+- Golf-specific parsing for hole numbers, pars, scores, front 9, back 9, totals, and player names.
+- Validation that rejects scans that do not look like scorecards.
 
-You've successfully run and modified your React Native App. :partying_face:
+The important user flow after OCR:
 
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+1. User hovers over the scorecard.
+2. App captures/scans the scorecard.
+3. OCR finds candidate numbers.
+4. App shows recognized scores on screen.
+5. User taps any number to correct it.
+6. User confirms when the numbers look right.
