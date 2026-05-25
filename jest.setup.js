@@ -29,3 +29,22 @@ jest.mock('react-native-vision-camera', () => {
     }),
   };
 });
+
+jest.mock('@react-native-ml-kit/text-recognition', () => ({
+  __esModule: true,
+  default: {
+    recognize: jest.fn(async () => ({
+      blocks: [
+        {
+          lines: [
+            {
+              text: '4 4 5 5 4 3 4 5 4',
+            },
+          ],
+          text: '4 4 5 5 4 3 4 5 4',
+        },
+      ],
+      text: '4 4 5 5 4 3 4 5 4',
+    })),
+  },
+}));

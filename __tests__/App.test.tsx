@@ -35,7 +35,13 @@ test('shows the score review after capturing a card', async () => {
       accessibilityLabel: 'Captured scorecard preview',
     }),
   ).toBeTruthy();
-  expect(renderer!.root.findByProps({ children: 42 })).toBeTruthy();
+  expect(renderer!.root.findByProps({ children: 38 })).toBeTruthy();
+  expect(
+    renderer!.root.findByProps({
+      accessibilityLabel:
+        'OCR status: OCR filled the score row from the cropped image.',
+    }),
+  ).toBeTruthy();
 });
 
 test('lets golfers correct a detected hole score', async () => {
@@ -54,7 +60,7 @@ test('lets golfers correct a detected hole score', async () => {
   });
 
   const holeThree = renderer!.root.findByProps({
-    accessibilityLabel: 'Hole 3 score 6, review recommended',
+    accessibilityLabel: 'Hole 3 score 5, confirmed',
   });
 
   await ReactTestRenderer.act(() => {
@@ -69,10 +75,10 @@ test('lets golfers correct a detected hole score', async () => {
     increaseButton.props.onPress();
   });
 
-  expect(renderer!.root.findByProps({ children: 43 })).toBeTruthy();
+  expect(renderer!.root.findByProps({ children: 39 })).toBeTruthy();
   expect(
     renderer!.root.findByProps({
-      accessibilityLabel: 'Hole 3 score 7, confirmed',
+      accessibilityLabel: 'Hole 3 score 6, confirmed',
     }),
   ).toBeTruthy();
 });

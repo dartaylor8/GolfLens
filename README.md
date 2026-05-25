@@ -1,34 +1,36 @@
-# GolfScoreScanner
+# Golf Lens
 
-GolfScoreScanner is a React Native app for scanning golf scorecards. The current build is Milestone 3: a camera-first flow with an adjustable crop box, real still-image capture, cropped scorecard preview, confidence flags, score correction controls, totals, rescan, and confirmation.
+Golf Lens is a React Native app for scanning golf scorecards. The current build is Milestone 4: a camera-first flow with an adjustable crop box, real still-image capture, cropped scorecard preview, on-device OCR, confidence flags, score correction controls, totals, rescan, and confirmation.
 
 ## Current Milestone
 
-Milestone 3 is complete:
+Milestone 4 is in progress:
 
 - Requests camera permission.
 - Opens the rear camera with `react-native-vision-camera`.
 - Shows a full-screen live camera preview.
-- Displays an adjustable rectangular scanning box.
-- Lets users move the crop box and change its width/height before capture.
+- Displays a touch-adjustable rectangular scanning box.
+- Lets users drag the crop box and resize it from the lower-right handle before capture.
 - Shows the prompt: `Hover over the scorecard`.
 - Adds a capture button and temporary capturing state.
 - Captures a still scorecard image using Vision Camera photo output.
 - Crops the captured image around the adjusted on-screen scan box and saves that crop to a temporary file.
+- Runs on-device text recognition on the cropped score row with `@react-native-ml-kit/text-recognition`.
+- Parses the best nine score-like numbers into front-nine scores.
 - Shows the cropped scorecard preview in review mode.
 - Shows a golf-specific score review for the front nine.
-- Calculates par, score, and score relative to par from sample scorecard data.
+- Calculates par, score, and score relative to par from OCR results or review fallback data.
 - Flags low-confidence holes that need a quick golfer review.
 - Lets users select a hole and correct detected strokes before confirming.
 - Lets users rescan or confirm the reviewed score.
-- Does not include OCR, database, login, saving, or backend yet. Review scores are still sample placeholder values.
+- Does not include database, login, saving, or backend yet.
 
-## Changed Files For Milestone 3
+## Changed Files For Milestone 4
 
-- `App.tsx`: Main camera screen, permission flow, adjustable scan box, capture/review/confirm state, real still-image capture, scan-box crop preview, sample scorecard preview, score correction controls, confidence flags, score totals, and controls.
+- `App.tsx`: Main camera screen, permission flow, touch-adjustable scan box, capture/review/confirm state, real still-image capture, scan-box crop preview, on-device OCR, score parsing, score correction controls, confidence flags, score totals, and controls.
 - `android/app/src/main/AndroidManifest.xml`: Adds Android camera permission.
 - `ios/GolfScoreScanner/Info.plist`: Adds iOS camera usage text: `This app uses the camera to scan golf score numbers.`
-- `package.json` and `package-lock.json`: Adds `react-native-vision-camera`, `react-native-nitro-modules`, and `react-native-nitro-image`.
+- `package.json` and `package-lock.json`: Adds `react-native-vision-camera`, `react-native-nitro-modules`, `react-native-nitro-image`, and `@react-native-ml-kit/text-recognition`.
 - `ios/Podfile.lock`: Updated after installing iOS pods.
 - `__tests__/App.test.tsx`: Covers rendering, the capture-to-review flow, captured preview rendering, and correcting a detected score.
 - `jest.config.js` and `jest.setup.js`: Adds Jest mocks for the native camera module, mock camera device, and mock photo capture output.
@@ -134,8 +136,8 @@ GitHub Desktop has been used successfully to push changes when Terminal could no
 
 Suggested next path:
 
-1. Add OCR and fill the score grid with detected numbers.
-2. Highlight low-confidence OCR results so users know what to review.
+1. Improve OCR parsing for full scorecards, totals, and multiple players.
+2. Add image preprocessing such as grayscale, contrast, and sharpening.
 3. Expand score correction from front nine to full scorecards and multiple players.
 4. Persist confirmed scorecards locally.
 5. Add a lightweight marketing-ready scan history screen.
