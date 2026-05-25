@@ -12,5 +12,6 @@ jest.mock('react-native-vision-camera', () => {
       requestPermission: jest.fn(),
       status: 'authorized',
     }),
+    useCameraDevice: () => ({ id: 'mock-back-camera' }),
   };
 });
