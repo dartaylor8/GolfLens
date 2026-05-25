@@ -12,27 +12,67 @@ test('renders correctly', async () => {
   });
 });
 
-test('shows the score review after scanning', async () => {
-  jest.useFakeTimers();
+test('shows the score review after capturing a card', async () => {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await ReactTestRenderer.act(() => {
     renderer = ReactTestRenderer.create(<App />);
   });
 
-  const scanButton = renderer!.root
-    .findAllByProps({ accessibilityRole: 'button' })
-    .find(button => button.props.children.props.children === 'Scan scorecard');
+  const scanButton = renderer!.root.findByProps({
+    accessibilityLabel: 'Capture scorecard',
+  });
 
   expect(scanButton).toBeDefined();
 
-  await ReactTestRenderer.act(() => {
-    scanButton!.props.onPress();
-    jest.runOnlyPendingTimers();
+  await ReactTestRenderer.act(async () => {
+    await scanButton!.props.onPress();
   });
 
   expect(renderer!.root.findByProps({ children: 'Review scan' })).toBeTruthy();
+  expect(
+    renderer!.root.findByProps({
+      accessibilityLabel: 'Captured scorecard preview',
+    }),
+  ).toBeTruthy();
   expect(renderer!.root.findByProps({ children: 42 })).toBeTruthy();
+});
 
-  jest.useRealTimers();
+test('lets golfers correct a detected hole score', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(<App />);
+  });
+
+  const scanButton = renderer!.root.findByProps({
+    accessibilityLabel: 'Capture scorecard',
+  });
+
+  await ReactTestRenderer.act(async () => {
+    await scanButton!.props.onPress();
+  });
+
+  const holeThree = renderer!.root.findByProps({
+    accessibilityLabel: 'Hole 3 score 6, review recommended',
+  });
+
+  await ReactTestRenderer.act(() => {
+    holeThree.props.onPress();
+  });
+
+  const increaseButton = renderer!.root.findByProps({
+    accessibilityLabel: 'Increase selected score',
+  });
+
+  await ReactTestRenderer.act(() => {
+    increaseButton.props.onPress();
+  });
+
+  expect(renderer!.root.findByProps({ children: 43 })).toBeTruthy();
+  expect(
+    renderer!.root.findByProps({
+      accessibilityLabel: 'Hole 3 score 7, confirmed',
+    }),
+  ).toBeTruthy();
 });
