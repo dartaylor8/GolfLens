@@ -29,6 +29,7 @@ function App() {
         <>
           <Camera style={StyleSheet.absoluteFill} device="back" isActive />
           <View pointerEvents="none" style={styles.overlay}>
+            <Text style={styles.scanPrompt}>Hover over the scorecard</Text>
             <View style={styles.scanBox} />
           </View>
         </>
@@ -65,6 +66,19 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     textAlign: 'center',
+  },
+  scanPrompt: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 24,
+    textAlign: 'center',
+    textShadowColor: '#000000',
+    textShadowOffset: {
+      height: 1,
+      width: 0,
+    },
+    textShadowRadius: 6,
   },
   scanBox: {
     borderColor: '#ffffff',
