@@ -1,11 +1,24 @@
 /* global jest */
+global.__GOLF_LENS_TEST__ = true;
 
 jest.mock('react-native-vision-camera', () => {
   const React = require('react');
   const { View } = require('react-native');
 
+  const MockCamera = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      takeSnapshot: jest.fn(async () => ({
+        width: 1280,
+        height: 720,
+        saveToTemporaryFileAsync: jest.fn(async () => '/tmp/mock-snapshot.jpg'),
+      })),
+    }));
+
+    return React.createElement(View, props);
+  });
+
   return {
-    Camera: props => React.createElement(View, props),
+    Camera: MockCamera,
     useCameraPermission: () => ({
       canRequestPermission: false,
       hasPermission: true,
@@ -16,15 +29,9 @@ jest.mock('react-native-vision-camera', () => {
     usePhotoOutput: () => ({
       capturePhoto: jest.fn(async () => ({
         dispose: jest.fn(),
-        toImageAsync: jest.fn(async () => ({
-          cropAsync: jest.fn(async () => ({
-            dispose: jest.fn(),
-            saveToTemporaryFileAsync: jest.fn(async () => '/tmp/mock-scorecard.jpg'),
-          })),
-          dispose: jest.fn(),
-          height: 1920,
-          width: 1080,
-        })),
+        height: 720,
+        saveToTemporaryFileAsync: jest.fn(async () => '/tmp/mock-full-scorecard.jpg'),
+        width: 1280,
       })),
     }),
   };
@@ -38,13 +45,25 @@ jest.mock('@react-native-ml-kit/text-recognition', () => ({
         {
           lines: [
             {
-              text: '4 4 5 5 4 3 4 5 4',
+              text: 'Hole 1 2 3 4 5 6 7 8 9',
+            },
+            {
+              text: 'Par 4 3 5 4 4 3 4 5 4',
+            },
+            {
+              text: 'Yards 388 154 522 410 401 171 395 530 418',
+            },
+            {
+              text: 'Darius 4 4 5 5 4 3 4 5 4',
+            },
+            {
+              text: 'Dad 5 4 6 4 5 3 5 6 4',
             },
           ],
-          text: '4 4 5 5 4 3 4 5 4',
+          text: 'Hole 1 2 3 4 5 6 7 8 9\nPar 4 3 5 4 4 3 4 5 4\nYards 388 154 522 410 401 171 395 530 418\nDarius 4 4 5 5 4 3 4 5 4\nDad 5 4 6 4 5 3 5 6 4',
         },
       ],
-      text: '4 4 5 5 4 3 4 5 4',
+      text: 'Hole 1 2 3 4 5 6 7 8 9\nPar 4 3 5 4 4 3 4 5 4\nYards 388 154 522 410 401 171 395 530 418\nDarius 4 4 5 5 4 3 4 5 4\nDad 5 4 6 4 5 3 5 6 4',
     })),
   },
 }));

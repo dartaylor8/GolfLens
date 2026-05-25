@@ -29,13 +29,13 @@ Milestone 4 is in progress:
 
 - `App.tsx`: Main camera screen, permission flow, touch-adjustable scan box, capture/review/confirm state, real still-image capture, scan-box crop preview, on-device OCR, score parsing, score correction controls, confidence flags, score totals, and controls.
 - `android/app/src/main/AndroidManifest.xml`: Adds Android camera permission.
-- `ios/GolfScoreScanner/Info.plist`: Adds iOS camera usage text: `This app uses the camera to scan golf score numbers.`
+- `ios/GolfLens/Info.plist`: Adds iOS camera usage text: `This app uses the camera to scan golf score numbers.`
 - `package.json` and `package-lock.json`: Adds `react-native-vision-camera`, `react-native-nitro-modules`, `react-native-nitro-image`, and `@react-native-ml-kit/text-recognition`.
 - `ios/Podfile.lock`: Updated after installing iOS pods.
 - `__tests__/App.test.tsx`: Covers rendering, the capture-to-review flow, captured preview rendering, and correcting a detected score.
 - `jest.config.js` and `jest.setup.js`: Adds Jest mocks for the native camera module, mock camera device, and mock photo capture output.
-- `ios/GolfScoreScanner.xcodeproj/project.pbxproj`: Includes Xcode project updates and disables user script sandboxing for React Native iOS builds.
-- `ios/GolfScoreScanner.xcodeproj/xcshareddata/xcschemes/GolfScoreScanner.xcscheme`: Xcode scheme upgrade metadata.
+- `ios/GolfLens.xcodeproj/project.pbxproj`: Includes Xcode project updates and disables user script sandboxing for React Native iOS builds.
+- `ios/GolfLens.xcodeproj/xcshareddata/xcschemes/GolfLens.xcscheme`: Xcode scheme upgrade metadata.
 
 ## Important iOS Notes
 
@@ -105,6 +105,7 @@ Run these before wrapping up changes:
 
 ```sh
 npm test -- --runInBand
+npm test -- --runInBand --watchman=false
 npm run lint
 npx tsc --noEmit
 ```

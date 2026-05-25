@@ -34,7 +34,7 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Golf Lens uses your location to help associate scanned scorecards with nearby courses.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app uses the camera to scan golf score numbers.</string>
 	<key>RCTNewArchEnabled</key>
@@ -48,6 +48,8 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>

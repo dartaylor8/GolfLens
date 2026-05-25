@@ -1,4 +1,4 @@
-package com.golfscorescanner
+package com.golflens
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
