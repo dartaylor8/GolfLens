@@ -38,6 +38,7 @@ type FrameRect = {
 
 type ParsedRowWithFrame = PlayerScoreRow & {
   frame?: FrameRect;
+  unreadableFrames?: FrameRect[];
 };
 
 type LiveScanState = {
@@ -205,17 +206,17 @@ function App() {
     const scaleX = previewSize.width / imageSize.width;
     const scaleY = previewSize.height / imageSize.height;
 
-    return liveRows
-      .filter(row => row.confidence === 'review' && row.frame)
-      .map(row => ({
+    return liveRows.flatMap(row =>
+      (row.unreadableFrames ?? []).map((frame, index) => ({
         frame: {
-          height: Math.max(20, (row.frame?.height ?? 24) * scaleY),
-          left: Math.max(0, (row.frame?.left ?? 0) * scaleX),
-          top: Math.max(0, (row.frame?.top ?? 0) * scaleY),
-          width: Math.max(80, (row.frame?.width ?? 120) * scaleX),
+          height: Math.max(18, frame.height * scaleY),
+          left: Math.max(0, frame.left * scaleX),
+          top: Math.max(0, frame.top * scaleY),
+          width: Math.max(18, frame.width * scaleX),
         },
-        id: row.id,
-      }));
+        id: `${row.id}-${index}`,
+      })),
+    );
   }, [imageSize.height, imageSize.width, liveRows, previewSize.height, previewSize.width]);
 
   useEffect(() => {
@@ -341,12 +342,30 @@ function getPlayerScoreRowsFromSpatialLayout(result: TextRecognitionResult) {
       const left = lineFrame?.left ?? line.elements?.[0]?.frame?.left ?? Number.NaN;
       const height = lineFrame?.height ?? line.elements?.[0]?.frame?.height ?? 24;
       const width = lineFrame?.width ?? line.elements?.[0]?.frame?.width ?? 120;
+      const elements = (line.elements ?? [])
+        .map(element => {
+          if (!element.frame) {
+            return null;
+          }
+          return {
+            frame: {
+              height: element.frame.height,
+              left: element.frame.left,
+              top: element.frame.top,
+              width: element.frame.width,
+            },
+            text: element.text.trim(),
+          };
+        })
+        .filter((element): element is { frame: FrameRect; text: string } =>
+          Boolean(element?.text),
+        );
 
       if (!Number.isFinite(top) || !Number.isFinite(left) || tokens.length === 0) {
         return [];
       }
 
-      return [{ height, left, text: lineText, tokens, top, width }];
+      return [{ elements, height, left, text: lineText, tokens, top, width }];
     }),
   );
 
@@ -385,6 +404,7 @@ function buildPlayerRowFromSpatialGroup(
   group: Array<{
     height: number;
     left: number;
+    elements: Array<{ frame: FrameRect; text: string }>;
     text: string;
     tokens: string[];
     top: number;
@@ -394,8 +414,14 @@ function buildPlayerRowFromSpatialGroup(
   const ordered = [...group].sort((a, b) => a.left - b.left);
   const mergedText = ordered.map(item => item.text).join(' ');
   const mergedTokens = ordered.flatMap(item => item.tokens);
+  const mergedElements = ordered
+    .flatMap(item => item.elements)
+    .sort((a, b) => a.frame.left - b.frame.left);
   const name = getPlayerName(ordered[0]?.text ?? mergedText);
-  let scores = parseScoreTokens(mergedTokens.join(' ')).slice(0, 18);
+  let { scores, unreadableFrames } = parseScoresFromElements(mergedElements);
+  if (scores.length === 0) {
+    scores = parseScoreTokens(mergedTokens.join(' ')).slice(0, 18);
+  }
   if (/^\s*\d{1,2}[.)]\s*[A-Za-z]/.test(mergedText) && scores.length > 0) {
     scores = scores.slice(1);
   }
@@ -423,6 +449,54 @@ function buildPlayerRowFromSpatialGroup(
     name,
     scores,
     total: scores.reduce((sum, score) => sum + score, 0),
+    unreadableFrames,
+  };
+}
+
+function parseScoresFromElements(elements: Array<{ frame: FrameRect; text: string }>) {
+  const scores: number[] = [];
+  const unreadableFrames: FrameRect[] = [];
+
+  for (const element of elements) {
+    if (scores.length >= 18) {
+      break;
+    }
+    const raw = element.text.trim();
+    if (!raw) {
+      continue;
+    }
+
+    const cleaned = normalizeScoreText(raw).replace(/[^\d]/g, '');
+    if (!cleaned) {
+      continue;
+    }
+
+    if (/^\d{1,2}$/.test(cleaned)) {
+      const value = Number(cleaned);
+      if (value >= 1 && value <= 12) {
+        scores.push(value);
+        continue;
+      }
+    }
+
+    if (/^\d{6,18}$/.test(cleaned)) {
+      const runScores = cleaned
+        .split('')
+        .map(token => Number(token))
+        .filter(value => Number.isInteger(value) && value >= 1 && value <= 9);
+
+      if (runScores.length > 0) {
+        scores.push(...runScores);
+        continue;
+      }
+    }
+
+    unreadableFrames.push(element.frame);
+  }
+
+  return {
+    scores: scores.slice(0, 18),
+    unreadableFrames,
   };
 }
 
