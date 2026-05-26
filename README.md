@@ -1,38 +1,32 @@
 # Golf Lens
 
-Golf Lens is a React Native app for scanning golf scorecards. The current build is Milestone 4: a camera-first flow with an adjustable crop box, real still-image capture, cropped scorecard preview, on-device OCR, confidence flags, score correction controls, totals, rescan, and confirmation.
+Golf Lens is a React Native app for scanning golf scorecards. The current build is a camera-first live scanner that reads scorecard rows with on-device OCR, highlights unreadable numbers, and overlays player totals after the same result appears across consecutive scans.
 
-## Current Milestone
+## Current Build
 
-Milestone 4 is in progress:
+The current app:
 
 - Requests camera permission.
 - Opens the rear camera with `react-native-vision-camera`.
 - Shows a full-screen live camera preview.
-- Displays a touch-adjustable rectangular scanning box.
-- Lets users drag the crop box and resize it from the lower-right handle before capture.
-- Shows the prompt: `Hover over the scorecard`.
-- Adds a capture button and temporary capturing state.
-- Captures a still scorecard image using Vision Camera photo output.
-- Crops the captured image around the adjusted on-screen scan box and saves that crop to a temporary file.
-- Runs on-device text recognition on the cropped score row with `@react-native-ml-kit/text-recognition`.
-- Parses the best nine score-like numbers into front-nine scores.
-- Shows the cropped scorecard preview in review mode.
-- Shows a golf-specific score review for the front nine.
-- Calculates par, score, and score relative to par from OCR results or review fallback data.
-- Flags low-confidence holes that need a quick golfer review.
-- Lets users select a hole and correct detected strokes before confirming.
-- Lets users rescan or confirm the reviewed score.
+- Captures periodic still frames in the background.
+- Runs on-device text recognition with `@react-native-ml-kit/text-recognition`.
+- Parses spatial OCR rows into player names, front-nine scores, and totals.
+- Waits for a stable repeated scan before committing visible totals.
+- Shows warning copy when no rows are detected, a row is incomplete, or OCR needs review.
+- Draws red overlay boxes around score-like OCR elements that were not readable as valid scores.
 - Does not include database, login, saving, or backend yet.
 
-## Changed Files For Milestone 4
+## Key Files
 
-- `App.tsx`: Main camera screen, permission flow, touch-adjustable scan box, capture/review/confirm state, real still-image capture, scan-box crop preview, on-device OCR, score parsing, score correction controls, confidence flags, score totals, and controls.
+- `App.tsx`: Main camera screen, permission flow, live frame capture, OCR orchestration, scan stability, overlay boxes, warnings, and totals UI.
+- `src/scorecardParser.ts`: Pure scorecard OCR parsing, score normalization, duplicate suppression, summaries, and warning selection.
 - `android/app/src/main/AndroidManifest.xml`: Adds Android camera permission.
 - `ios/GolfLens/Info.plist`: Adds iOS camera usage text: `This app uses the camera to scan golf score numbers.`
 - `package.json` and `package-lock.json`: Adds `react-native-vision-camera`, `react-native-nitro-modules`, `react-native-nitro-image`, and `@react-native-ml-kit/text-recognition`.
 - `ios/Podfile.lock`: Updated after installing iOS pods.
-- `__tests__/App.test.tsx`: Covers rendering, the capture-to-review flow, captured preview rendering, and correcting a detected score.
+- `__tests__/App.test.tsx`: Covers app rendering and live scan status copy.
+- `__tests__/scorecardParser.test.ts`: Covers parser row extraction, duplicate rows, summaries, and incomplete-row warnings.
 - `jest.config.js` and `jest.setup.js`: Adds Jest mocks for the native camera module, mock camera device, and mock photo capture output.
 - `ios/GolfLens.xcodeproj/project.pbxproj`: Includes Xcode project updates and disables user script sandboxing for React Native iOS builds.
 - `ios/GolfLens.xcodeproj/xcshareddata/xcschemes/GolfLens.xcscheme`: Xcode scheme upgrade metadata.
@@ -55,6 +49,14 @@ The direct iPad Mini build succeeded after that fix:
 ```
 
 ## Running The App
+
+Open the iOS project in Xcode from the CocoaPods workspace:
+
+```sh
+open ios/GolfLens.xcworkspace
+```
+
+Use the workspace, not `ios/GolfLens.xcodeproj`, so Xcode loads the app target and Pods together.
 
 Start Metro in one terminal:
 
@@ -122,13 +124,13 @@ bundle exec pod install
 The project is saved locally at:
 
 ```text
-/Users/dariusmtaylor/Documents/GolfScoreScanner
+/Users/dariusmtaylor/Documents/GolfLens
 ```
 
 The GitHub remote is:
 
 ```text
-https://github.com/dartaylor8/GolfScoreScanner.git
+https://github.com/dartaylor8/GolfLens.git
 ```
 
 GitHub Desktop has been used successfully to push changes when Terminal could not access GitHub credentials.
@@ -137,16 +139,16 @@ GitHub Desktop has been used successfully to push changes when Terminal could no
 
 Suggested next path:
 
-1. Improve OCR parsing for full scorecards, totals, and multiple players.
+1. Improve OCR parsing for full scorecards, back nine, totals, and multiple players.
 2. Add image preprocessing such as grayscale, contrast, and sharpening.
-3. Expand score correction from front nine to full scorecards and multiple players.
+3. Add score correction for uncertain or missing holes.
 4. Persist confirmed scorecards locally.
 5. Add a lightweight marketing-ready scan history screen.
 
 OCR will not automatically recognize only golf scorecards. The app should make OCR behave like a scorecard scanner by combining:
 
-- Cropping to the scan box.
-- Respecting the user's adjusted crop box size and position.
+- Stable live frame capture.
+- Spatial grouping of OCR lines and elements.
 - Image preprocessing such as grayscale, contrast, and sharpening.
 - OCR for visible text and numbers.
 - Golf-specific parsing for hole numbers, pars, scores, front 9, back 9, totals, and player names.
@@ -155,8 +157,8 @@ OCR will not automatically recognize only golf scorecards. The app should make O
 The important user flow after OCR:
 
 1. User hovers over the scorecard.
-2. App captures/scans the scorecard.
-3. OCR finds candidate numbers.
-4. App shows recognized scores on screen.
-5. User taps any number to correct it.
-6. User confirms when the numbers look right.
+2. App reads live frames until the score rows stabilize.
+3. OCR finds candidate player rows and scores.
+4. App shows recognized totals on screen.
+5. User reviews any highlighted uncertain numbers.
+6. User confirms or corrects the numbers when the review flow is added.

@@ -23,3 +23,14 @@ test('shows live scan status copy', async () => {
     renderer!.root.findByProps({ children: 'Point camera at scorecard' }),
   ).toBeTruthy();
 });
+
+test('shows capture and reset buttons', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(<App />);
+  });
+
+  expect(renderer!.root.findByProps({ children: 'Capture' })).toBeTruthy();
+  expect(renderer!.root.findByProps({ children: 'Reset' })).toBeTruthy();
+});
